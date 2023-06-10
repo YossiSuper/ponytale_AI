@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- Load TensorFlow.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"></script>
+    <script src="https://docs.opencv.org/3.4.1/opencv.js"></script>
+    <video id="player" controls playsinline muted autoplay></video>
+    <p id="prediction"></p>
+</body>
+<script>
+    
+    async function update(){
+        cam = await tf.data.webcam(document.createElement('video'),{
+            resizeWidth: 128,
+            resizeHeight: 128,
+        });
+        img = await cam.capture();
+        img = img.div(255)
+        prediction = await model.predict(img.reshape([1,128,128,3]))
+        
+        prediction.array().then(array => {
+            prediction_area = document.getElementById("prediction")
+            prediction_area.innerHTML = `ポニテ率:${array[0][1]}}`
+        });
+    }
+    var model;
+    
+    async function run(){
+        model = await tf.loadLayersModel('./tfjs_model/model.json')
+    }
+
+    const constraints = {
+        video: true,
+    };
+
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then((stream) => {
+        player = document.getElementById("player")
+        player.srcObject = stream;
+        });
+    
+    run()
+    setInterval(update,1000)
+</script>
+</html>
